@@ -19,7 +19,6 @@
 
 int
 p8_read_and_dispatch(int fd, p8s_frame_t *iframe,
-        p8_io_buffer_t *pib,
         const struct proto_dispatch_table *dt, proto_callback_arg_t *cba_table) {
 
     assert_frame_invariant(iframe);
@@ -27,7 +26,7 @@ p8_read_and_dispatch(int fd, p8s_frame_t *iframe,
     int rv;
 
     /* Read at least one P8 frame.  */
-    rv = p8_read(fd, iframe, pib);
+    rv = p8_read(fd, iframe);
     if (rv) return rv;
 
     while (iframe->f_end > iframe->f_sta) {
@@ -42,7 +41,6 @@ p8_read_and_dispatch(int fd, p8s_frame_t *iframe,
 
 int
 p8_write(int fd, p8s_frame_t *oframe,
-         p8_io_buffer_t *pib,
          const struct proto_dispatch_table *dt, proto_callback_arg_t *cba_table) {
 
     assert_frame_invariant(oframe);
@@ -59,7 +57,7 @@ p8_write(int fd, p8s_frame_t *oframe,
     }
 
     int rv;
-    rv = p8_read_and_dispatch(fd, &iframe, pib, dt, cba_table);
+    rv = p8_read_and_dispatch(fd, &iframe, dt, cba_table);
     if (rv) return rv;
 
     assert_frame_invariant(oframe);

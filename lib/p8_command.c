@@ -67,7 +67,6 @@ const static struct proto_dispatch_table p8_command_dt = {
 int
 p8_command(int fd, p8_code_t code,
            proto_char_t *params, proto_len_t len,
-           p8_io_buffer_t *pib,
            cec_rx_frame_t *iframe) {
     assert_frame_invariant(iframe);
 
@@ -93,7 +92,7 @@ p8_command(int fd, p8_code_t code,
         { .cba_int = 0 },           /* BUILDDATE reply -> protocol error */
     };
 
-    if (p8_write(fd, &oframe, pib, &p8_command_dt, cba_table) < 0) {
+    if (p8_write(fd, &oframe, &p8_command_dt, cba_table) < 0) {
         status = P8_ERROR;
     }
 
@@ -103,7 +102,8 @@ p8_command(int fd, p8_code_t code,
 }
 
 int
-p8_command1(int fd, enum p8_code code, proto_char_t param, p8_io_buffer_t *pib, proto_frame_t *iframe) {
+p8_command1(int fd, enum p8_code code, proto_char_t param, 
+            proto_frame_t *iframe) {
     proto_char_t c = param;
-    return p8_command(fd, code, &c, 1, pib, iframe);
+    return p8_command(fd, code, &c, 1, iframe);
 }

@@ -72,21 +72,16 @@ int main(void) {
         exit(1);
     }
 
-    p8_io_buffer_t pib = {
-        .pib_read = 0,
-        .pib_last = 0,
-    };
-
     cec_rx_frame_t crb = {
         .f_sta = crb.f_buf,
         .f_end = crb.f_buf,
         .f_status = CEC_RX_EMPTY,
     };
 
-    rv = p8_command_ping(fd, &pib, &crb);
+    rv = p8_command_ping(fd, &crb);
     assert(rv == 0);
 
-    rv = p8_command_set_controlled(fd, &pib, &crb);
+    rv = p8_command_set_controlled(fd, &crb);
     assert(rv == 0);
 
     /* CEC POLL src:dst = Unknown:TV */
@@ -96,12 +91,12 @@ int main(void) {
         .f_end = ctb.f_buf + 2,
         .f_status = CEC_TX_UNKNOWN,
     };
-    p8_cec_tx(fd, 3, &ctb, &crb, &pib);
+    p8_cec_tx(fd, 3, &ctb, &crb);
 
     DEBUG("crb.sta %ld crb.end %ld crb.status %d\n",
           crb.f_sta - crb.f_buf, crb.f_end - crb.f_buf, crb.f_status);
 
-    p8_cec_rx(fd, &crb, &pib);
+    p8_cec_rx(fd, &crb);
 
     len = crb.f_end - crb.f_sta;
     DEBUG("Received %d chars:", len);

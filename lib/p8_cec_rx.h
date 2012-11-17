@@ -19,5 +19,5 @@ p8_cec_rx_error_cb(proto_char_t code,
  */
 
 extern int
-p8_cec_rx(int fd, cec_rx_frame_t *frame, p8_io_buffer_t *pib);
+p8_cec_rx(int fd, cec_rx_frame_t *frame);
 

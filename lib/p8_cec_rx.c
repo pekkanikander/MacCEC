@@ -93,7 +93,7 @@ const static struct proto_dispatch_table p8_cec_rx_dt = {
  * Receives the next CEC message to the given cec_rx_frame.  Blocks.
  */
 extern int
-p8_cec_rx(int fd, cec_rx_frame_t *iframe, p8_io_buffer_t *pib) {
+p8_cec_rx(int fd, cec_rx_frame_t *iframe) {
     assert_frame_invariant(iframe);
     assert_frame_is_empty(iframe);
     assert(iframe->f_status == CEC_RX_EMPTY);
@@ -113,7 +113,7 @@ p8_cec_rx(int fd, cec_rx_frame_t *iframe, p8_io_buffer_t *pib) {
         };
 
         DEBUG("CEC RX: Processing input\n");
-        rv = p8_read_and_dispatch(fd, &p8frame, pib, &p8_cec_rx_dt, cba_table);
+        rv = p8_read_and_dispatch(fd, &p8frame, &p8_cec_rx_dt, cba_table);
         if (rv) return rv;
 
     } while (iframe->f_end == iframe->f_sta || iframe->f_status != CEC_RX_EOM);

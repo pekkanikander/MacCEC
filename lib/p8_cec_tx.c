@@ -114,7 +114,7 @@ const static struct proto_dispatch_table p8_cec_tx_dt = {
 
 int
 p8_cec_tx(int fd, unsigned char idletime,
-          cec_tx_frame_t *cec_oframe, cec_rx_frame_t *cec_iframe, p8_io_buffer_t *pib) {
+          cec_tx_frame_t *cec_oframe, cec_rx_frame_t *cec_iframe) {
     int ack_count = 0, nack_count = 0;
 
     assert_frame_invariant(cec_oframe);
@@ -151,7 +151,7 @@ p8_cec_tx(int fd, unsigned char idletime,
         cec_oframe->f_status = CEC_TX_UNKNOWN;
 
         DEBUG("CEC TX: Writing %ld bytes, waiting for %d acks\n", p8frame.f_end - p8frame.f_sta, ack_count);
-        int rv = p8_write(fd, &p8frame, pib, &p8_cec_tx_dt, cba_table);
+        int rv = p8_write(fd, &p8frame, &p8_cec_tx_dt, cba_table);
         if (rv) {
             cec_tx_error(CEC_TX_ERROR, cec_oframe);
             return rv;
@@ -167,7 +167,7 @@ p8_cec_tx(int fd, unsigned char idletime,
         /* XXX Should have a timeout */
         while (nack_count == 0 && cec_oframe->f_status == CEC_TX_UNKNOWN) {
             DEBUG("CEC TX: Processing input\n");
-            p8_read_and_dispatch(fd, &p8frame, pib, &p8_cec_tx_dt, cba_table);
+            p8_read_and_dispatch(fd, &p8frame, &p8_cec_tx_dt, cba_table);
         }
     }
 

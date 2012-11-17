@@ -21,4 +21,4 @@ cec_tx_error(cec_tx_status_t status, cec_tx_frame_t *frame);
 
 extern int
 p8_cec_tx(int fd, unsigned char idletime,
-          cec_tx_frame_t *cec_oframe, cec_rx_frame_t *cec_iframe, p8_io_buffer_t *pib);
+          cec_tx_frame_t *cec_oframe, cec_rx_frame_t *cec_iframe);
