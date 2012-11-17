@@ -6,17 +6,16 @@
 
 #include "proto.h"
 
-#include "p8.h"
-#include "p8_codes.h"
-#include "p8_frame.h"
-
-#include "p8_error.h"
-#include "p8_dispatch.h"
-#include "p8_io.h"
-
 #include "cec.h"
 #include "cec_rx.h"
 #include "cec_tx.h"
+
+#include "p8.h"
+#include "p8_codes.h"
+#include "p8_frame.h"
+#include "p8_error.h"
+#include "p8_dispatch.h"
+#include "p8_io.h"
 
 #include "p8_cec_rx.h"
 #include "p8_cec_tx.h"

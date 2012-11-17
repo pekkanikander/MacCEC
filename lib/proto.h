@@ -4,6 +4,14 @@
  * This file has been explicitly placed in public domain.
  */
 
+/*
+ * These data structures are optimised for handling protocols
+ * that have short frames, where each frame starts with a
+ * single 8-bit command code, followed by 0-16 bytes of
+ * arguments.  Each frame is delimited by external means;
+ * the frame itself does not carry any explicit length.
+ */
+
 /**
  * The number of items in a constant table.
  *
@@ -24,23 +32,22 @@
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((unsigned int)(!(sizeof(x) % sizeof(0[x])))))
 
 /**
- * XXX
+ * The basic element in the protocols, an 8-bits long char/frame.
  */
-
 
 typedef unsigned char proto_char_t;
 
 /**
- * XXX
+ * Maximum size of a protocol frame.
  *
  * Allow a number of encoded P8 frames in one P8 serial frame.
  * A CEC message may be 16 bytes, requiring max 64 P8 serial bytes.
  * In addition that, there will be timeout setting etc, so we go for
- * longer that fits into a power of 2.
+ * a value longer that that 16*4 that fits into a power of 2.
  */
 
-#define PROTO_FRAME_SIZE 128
-
+/* NB.  There is an assert in proto_dispatch.c checking the sizes. */
+#define PROTO_FRAME_SIZE   128
 #define PROTO_FRAME_MAXLEN (PROTO_FRAME_SIZE - 2 * sizeof(proto_char_t *) - sizeof(int))
 
 typedef struct proto_frame {
@@ -65,13 +72,13 @@ typedef struct proto_frame {
  *
  * Select a type that produces good code for your platform
  * and than can hold values 0...PROTO_FRAME_MAXLEN.
+ * Usually an unsigned int is good, but for the 8/16-bit uCs,
+ * where you may want to use unsigned short or unsigned char.
  */
 typedef unsigned int proto_len_t;
 
-/*
- * Represents any callback argument, like yesteryear's void *.
- * Notice the usage of struct pointers instead of typedefs,
- * avoiding including upper layer headers.
+/**
+ * Represent any callback argument, like yesteryear's void pointer.
  */
 typedef union {
     int                              cba_int;
@@ -79,10 +86,12 @@ typedef union {
     proto_frame_t                   *cba_frame;
 } proto_callback_arg_t;
 
+/**
+ * Callback function, called back by the proto_dispatch,
+ * based on the code and dispatch table.
+ */
 typedef int (*proto_callback_t)(proto_char_t code, const proto_frame_t *frame,
                                 proto_callback_arg_t cb_arg);
-
-typedef unsigned char proto_dispatch_index_t;
 
 /*
  * Protocol dispatch.
@@ -92,13 +101,14 @@ typedef unsigned char proto_dispatch_index_t;
 
 #define PROTO_INDEX_SIZE 256
 
+typedef unsigned char proto_dispatch_index_t;
+
 typedef struct proto_dispatch_table {
     unsigned char                dt_number;      /* Number of callbacks in table */
     const proto_dispatch_index_t dt_indices[PROTO_INDEX_SIZE]; /* Map codes to indices */
     const proto_callback_t       dt_error;       /* Index out of bounds */
     const proto_callback_t *     dt_callbacks;   /* The callbacks themselves */
 } proto_dispatch_table_t;
-
 
 extern int
 proto_dispatch(const proto_char_t code,

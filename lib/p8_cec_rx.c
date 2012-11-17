@@ -14,7 +14,6 @@
 #include "p8_frame.h"
 #include "p8_dispatch.h"
 #include "p8_io.h"
-
 #include "p8_cec_rx.h"
 
 #include <assert.h>

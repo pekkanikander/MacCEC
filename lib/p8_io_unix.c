@@ -21,13 +21,6 @@
 
 #include <assert.h>
 
-/*
- * XXX: Revise the non-blocking operations.
- *      Currently it looks like that we are non-block
- *      for no reason, but that needs to be re-evaluated
- *      once we get threads support there.
- */
-
 /**
  * Opens a communication channel with the P8 CEC-USB adapter.
  *

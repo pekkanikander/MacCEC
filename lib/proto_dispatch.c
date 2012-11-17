@@ -8,6 +8,17 @@
 
 #include <assert.h>
 
+/**
+ * Call a dispatch function based on code.
+ *
+ * First look up the dispatch function index from
+ * the dispatch_table_indices, then call the actual
+ * dispatch function, passing the code, frame,
+ * and the appropriate argument from cba_table.
+ *
+ * @returns whatever the dispatch function returns.
+ */
+
 int
 proto_dispatch(const proto_char_t code,
                const proto_frame_t *frame,
