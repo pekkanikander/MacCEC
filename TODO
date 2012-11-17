@@ -1,0 +1,8 @@
+2012-11-17
+
+- refactor pib out
+  - remove the "include" order dependency in p8_cec_tx.c, 
+  - remove extra includes from cec_tx_error.c
+- test after refactoring
+- commit
+ 
