@@ -1,6 +1,6 @@
 Simple Mac OS X CEC implementation, in plain C.
 
-This is partial implementation of the HMDI CEC 1.3a, the latest public
+This is a partial implementation of the HMDI CEC 1.3a, the latest public
 version.  This software has not been tested with standards
 conformance, so it may or may not work for you.  In any case, it does
 not implement the full protocol, just a minimal subset.
@@ -27,9 +27,13 @@ Structured to make porting easy.
 
 Layered architecture without circular dependencies:
 
-CEC adapation: cec_rx, cec_tx, cec_rx_error, cec_tx_error
+CEC:              TBD
 
-P8 protocol:   p8_command, p8_cec_rx, p8_cec_tx, p8_error
-Dispatch:      p8_dispatch
-Framing:       p8_codes, p8_frame, p8_frame_error
-I/O:           p8_io, p8_io_unix, p8_detect_apple
+CEC adaptation:   cec_rx, cec_tx, cec_rx_error, cec_tx_error
+
+P8 upper layer:   p8_command, p8_cec_rx, p8_cec_tx, p8_error
+P8 Dispatch:      p8_dispatch
+P8 framing:       p8_codes, p8_frame, p8_frame_error
+Serial I/O:       p8_io, p8_io_unix, p8_detect_apple
+
+Frame & dispatch: proto, proto_dispatch

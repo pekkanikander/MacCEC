@@ -7,30 +7,35 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include "proto.h"
+
 #include "cec.h"
 #include "cec_rx.h"
 
-cec_rx_status_t
-cec_rx_char_cb(cec_char_t c, cec_flags_t f, cec_rx_buffer_t *crb) {
-
-    if (crb->crb_char_count > 0 && (f & CEC_START)) {
-        /* Ignore any previous message that didn't include EOM */
-        crb->crb_char_count = 0;
-    } /* NB.  No "else" here.  A good compiler will optimize. */
-
-    if (crb->crb_char_count > 0 &&
-        (crb->crb_flags[crb->crb_char_count] & CEC_EOM)) {
-        return CEC_RX_EOM;
+void
+cec_rx_char_cb(cec_char_t c, cec_flags_t f, cec_rx_frame_t *frame) {
+    cec_rx_state_t state = frame->f_status;
+    switch (state) {
+    case CEC_RX_EMPTY:
+        if (!f & CEC_START) {
+            cec_rx_error(state, c, f, frame);
+            return;
+        }
+        frame->f_status = CEC_RX_PROGRESS;
+        /* Fallthrough */
+    case CEC_RX_PROGRESS:
+        *frame->f_end++ = c;
+        if (f & CEC_EOM)
+            frame->f_status = CEC_RX_EOM;
+        if (frame->f_end <= frame->f_buf + COUNT_OF(frame->f_buf))
+            break;
+        /* Fallthrough */
+    case CEC_RX_EOM:
+        frame->f_status = CEC_RX_OVF;
+        /* Fallthrough */
+    case CEC_RX_OVF:
+    case CEC_RX_ERROR:
+    default:
+        cec_rx_error(state, c, f, frame);
     }
-
-    if (crb->crb_char_count >= CEC_MAX_PACKET_LENGTH) {
-        crb->crb_status = CEC_RX_OVF;
-        return crb->crb_status;
-    }
-
-    crb->crb_chars[crb->crb_char_count] = c;
-    crb->crb_flags[crb->crb_char_count] = f;
-    crb->crb_char_count++;
-
-    return CEC_RX_OK;
 }

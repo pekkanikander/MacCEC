@@ -2,11 +2,15 @@
 # This file has been explicitly placed in public domain.
 #
 
+PROTO_OBJ = \
+	proto_dispatch.o \
+#
 P8_OBJ = \
 	p8_error.o \
 	p8_codes.o \
+	p8_frame_decode.o \
 	p8_frame_error.o \
-	p8_frame.o \
+	p8_frame_encode.o \
 	p8_dispatch.o \
 	p8_command.o \
 	p8_cec_rx.o \
@@ -23,7 +27,9 @@ PLATFORM_OBJ = \
 	p8_io.o \
 #
 
-OBJ = $(P8_OBJ) $(PLATFORM_OBJ) $(CEC_OBJ)
+CFLAGS += -Wall -g
+
+OBJ = $(PROTO_OBJ) $(P8_OBJ) $(PLATFORM_OBJ) $(CEC_OBJ)
 
 all:	libccec.a
 

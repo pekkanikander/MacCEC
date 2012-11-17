@@ -81,4 +81,16 @@ typedef struct p8_code_type {
 } p8_code_type_t;
 
 extern const p8_code_type_t p8_code_types[];
-extern const unsigned int   p8_code_type_count; /* Number of entries in p8_code_types */
+extern const unsigned int   P8_CODE_TYPE_COUNT; /* Number of entries in p8_code_types */
+
+#define assert_code_tx_invariant(code, len)                \
+    assert((code) < P8_CODE_TYPE_COUNT),                   \
+    assert(p8_code_types[(code)].ct_type & P8_CT_H2A),     \
+    assert((len) >= p8_code_types[(code)].ct_h2a_min_plen),\
+    assert((len) <= p8_code_types[(code)].ct_h2a_max_plen)
+
+#define assert_code_rx_invariant(code, frame)              \
+    assert((code) < P8_CODE_TYPE_COUNT),                   \
+    assert(p8_code_types[(code)].ct_type & P8_CT_A2H),     \
+    assert(((frame)->f_end - (frame)->f_sta) >= p8_code_types[(code)].ct_a2h_min_plen), \
+    assert(((frame)->f_end - (frame)->f_sta) <= p8_code_types[(code)].ct_a2h_max_plen)

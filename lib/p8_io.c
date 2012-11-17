@@ -6,6 +6,8 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include "proto.h"
+
 #include "p8.h"
 #include "p8_codes.h"
 #include "p8_frame.h"
@@ -16,48 +18,52 @@
 #include <assert.h>
 
 int
-p8_read(int fd,  p8_frame_t *frbuf, const p8_len_t max_len, p8_io_buffer_t *pib,
-        const struct p8_dispatch_table *dt, p8_callback_arg_t *cba_table) {
-    int len = 0;
+p8_read_and_dispatch(int fd, p8s_frame_t *iframe,
+        p8_io_buffer_t *pib,
+        const struct proto_dispatch_table *dt, proto_callback_arg_t *cba_table) {
+
+    assert_frame_invariant(iframe);
+
+    int rv;
 
     /* Read at least one P8 frame.  */
-    len = p8_read2(fd, frbuf, max_len, pib);
-    if (len <= 0) {
-        return len;
+    rv = p8_read(fd, iframe, pib);
+    if (rv) return rv;
+
+    while (iframe->f_end > iframe->f_sta) {
+        rv = p8_dispatch(iframe, dt, cba_table);
+        if (rv) return rv;
     }
 
-    int l = len;
-    p8_frame_t *p = frbuf;
+    assert_frame_invariant(iframe);
 
-    while (l > 0) {
-        int consumed = p8_dispatch(p, l, dt, cba_table);
-        l -= consumed;
-        p += consumed;
-    }
-
-    assert(l == 0);
-    assert(p == frbuf + len);
-
-    return len;
+    return 0;
 }
 
 int
-p8_write(int fd, p8_frame_t *sbuf, p8_len_t slen,
+p8_write(int fd, p8s_frame_t *oframe,
          p8_io_buffer_t *pib,
-         const struct p8_dispatch_table *dt, p8_callback_arg_t *cba_table) {
+         const struct proto_dispatch_table *dt, proto_callback_arg_t *cba_table) {
 
-    p8_frame_t rbuf[P8_FRAME_BUFFER_LENGTH];
-    int rlen, rv;
+    assert_frame_invariant(oframe);
 
-    if (slen != write(fd, sbuf, slen)) {
+    /* NB.  iframe in the stack.  Fix later for kernel if needed. */
+    p8s_frame_t iframe = {
+        .f_sta = iframe.f_buf,
+        .f_end = iframe.f_buf,
+    };
+
+    int slen = oframe->f_end - oframe->f_sta;
+    if (slen != write(fd, oframe->f_sta, slen)) {
         return -1;
     }
 
-    rlen = p8_read(fd, rbuf, sizeof(rbuf), pib, dt, cba_table);
-    if (rlen <= 0) {
-        return -1;
-    }
+    int rv;
+    rv = p8_read_and_dispatch(fd, &iframe, pib, dt, cba_table);
+    if (rv) return rv;
 
-    return slen;
+    assert_frame_invariant(oframe);
+
+    return 0;
 }
 

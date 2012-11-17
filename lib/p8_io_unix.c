@@ -13,6 +13,7 @@
 #include <sys/errno.h>
 #include <sys/param.h>          /* For MAXPATHLEN */
 
+#include "proto.h"
 #include "p8.h"
 #include "p8_codes.h"
 #include "p8_frame.h"
@@ -42,7 +43,7 @@ p8_open(void) {
         return -1;
     }
 
-    return open(path, O_RDWR | O_NONBLOCK);
+    return open(path, O_RDWR);
 }
 
 /**
@@ -56,16 +57,20 @@ p8_close(int fd) {
 }
 
 /**
- * Reads one or more P8 messages.  Does not block.
+ * XXX: Remove p8_io_buffer as it is no longer needed.
  *
- * @Returns the number of bytes read, maybe zero.
+ * Reads one or more P8 messages to the end of iframe.
+ * Does not block.
+ *
+ * @Returns 0 if succeeded.
  * A return value < 0 means error, see errno.
  * May return an incomplete frame on read errors.
  */
 int
-p8_read2(int fd, p8_frame_t *frbuf, const p8_len_t max_len, p8_io_buffer_t *pib) {
+p8_read(int fd, p8s_frame_t *iframe, p8_io_buffer_t *pib) {
     int len = 0;
 
+    int max_len = (iframe->f_buf + COUNT_OF(iframe->f_buf)) - iframe->f_end;
     assert(max_len > 0);            /* Don't allow zero reads. */
     for (;;) {
         /* Invariant */
@@ -77,25 +82,26 @@ p8_read2(int fd, p8_frame_t *frbuf, const p8_len_t max_len, p8_io_buffer_t *pib)
          * Copy data from the read buffer, if any.
          */
         while (len < max_len && pib->pib_read < pib->pib_last) {
-            p8_len_t cc = pib->pib_last - pib->pib_read;
+            proto_len_t cc = pib->pib_last - pib->pib_read;
 
             if (cc > max_len - len)
                 cc = max_len - len;
             assert(cc > 0 && cc <= max_len - len);
-            memcpy(frbuf + len, pib->pib_buffer + pib->pib_read, cc);
+            memcpy(iframe->f_end, pib->pib_buffer + pib->pib_read, cc);
             pib->pib_read += cc;
             len          += cc;
         }
-        /* Now the read buffer must be empty or the return buffer full. */
+        /* Now the read buffer must be empty or the iframe full. */
         assert(pib->pib_read == pib->pib_last || len == max_len);
 
         assert(len <= max_len);
         assert(pib->pib_read <= pib->pib_last);
         assert(pib->pib_last <= sizeof(pib->pib_buffer));
 
-        /* Return if the return buffer is full or we have a full frame. */
-        if (len == max_len || (len > 0 && frbuf[len-1] == P8_FRAME_END)) {
-            return len;
+        /* Return if the iframe is full or we have a full frame. */
+        if (len == max_len || (len > 0 && iframe->f_end[len-1] == P8_FRAME_END)) {
+            iframe->f_end += len;
+            return 0;
         }
 
         assert(pib->pib_read == pib->pib_last);
@@ -103,12 +109,11 @@ p8_read2(int fd, p8_frame_t *frbuf, const p8_len_t max_len, p8_io_buffer_t *pib)
         /* Read more data. The read buffer must be empty here, so reset it. */
         pib->pib_read = pib->pib_last = 0;
         {
-            int cc, rv;
+            int rv;
 
-            /* XXX MAY BUSY LOOP. */
-            do {
-                rv = read(fd, pib->pib_buffer, sizeof(pib->pib_buffer));
-            } while (rv == -1 && errno == EAGAIN);
+            //DEBUG("p8_io_unix: Reading...\n");
+            rv = read(fd, pib->pib_buffer, sizeof(pib->pib_buffer));
+            //DEBUG("p8_io_unix: Reading...got %d.\n", rv);
             if (rv <= 0) {
                 /* Didn't get any data. */
                 /* Return error if no data yet. */

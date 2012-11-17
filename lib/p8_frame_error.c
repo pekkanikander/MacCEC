@@ -6,11 +6,14 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include "proto.h"
+
 #include "p8.h"
 #include "p8_codes.h"
 #include "p8_frame.h"
 
 #include <stdio.h>
+#include <assert.h>
 
 /**
  * Called on frame decode error by p8_decode.
@@ -21,7 +24,13 @@
  */
 
 int
-p8_frame_error(enum p8_frame_error type, const p8_frame_t *frbuf, p8_len_t len) {
-    fprintf(stderr, "P8 frame error: type=%d, len=%d\n", type, len);
+p8_frame_error(enum p8_frame_error type, const p8_frame_t *frame) {
+    assert_frame_invariant(frame);
+    fprintf(stderr, "P8 frame error: type=%d, len=%ld:", type,
+            frame->f_end - frame->f_sta);
+    for (proto_char_t *p = frame->f_sta; p < frame->f_end; p++) {
+        fprintf(stderr, " 0x%02.2x", *p);
+    }
+    fprintf(stderr, "\n");
     return -1;
 }

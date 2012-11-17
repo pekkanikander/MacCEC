@@ -4,15 +4,15 @@
  * This file has been explicitly placed in public domain.
  */
 
-extern void
-p8_cec_tx_callback(p8_code_t code,
-                   const p8_param_t *params, p8_len_t params_len,
-                   p8_callback_arg_t cba);
+extern int
+p8_cec_tx_callback(proto_char_t code,
+                   const p8_frame_t *frame,
+                   proto_callback_arg_t cba);
 
-extern void
-p8_cec_tx_error_cb(p8_code_t code,
-                   const p8_param_t *params, p8_len_t params_len,
-                   p8_callback_arg_t cba);
+extern int
+p8_cec_tx_error_cb(proto_char_t code,
+                   const p8_frame_t *frame,
+                   proto_callback_arg_t cba);
 
 /*
  * Internal routine to transmit a CEC frame.
@@ -20,5 +20,5 @@ p8_cec_tx_error_cb(p8_code_t code,
 
 extern cec_tx_status_t
 p8_cec_tx(int fd, unsigned char idletime,
-          cec_tx_buffer_t *ctb, cec_rx_buffer_t *crb, p8_io_buffer_t *pib);
+          cec_tx_frame_t *oframe, cec_rx_frame_t *iframe, p8_io_buffer_t *pib);
 

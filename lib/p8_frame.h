@@ -21,33 +21,15 @@ enum p8_frame_error {
     P8_ERROR_FRAME_INCOMPLETE,    /* Incomplete frame, something is missing */
     P8_ERROR_FRAME_BEGIN_MISSING, /* Didn't find frame start when expecting */
     P8_ERROR_SPURIOUS_START,      /* Found frame start before end */
+    P8_ERROR_FRAME_MALFORMED,     /* Frame didn't follow assumed format */
 };
 
-typedef unsigned char p8_frame_t;
-
-/*
- * Represents any callback argument, like yesteryear's void *.
- * Notice the usage of struct pointers instead of typedefs,
- * avoiding including upper layer headers.
- */
-typedef union {
-    int                              cba_int;
-    int                             *cba_intp;
-    struct p8_dispatch_callback_arg *cba_dispatch;
-    struct cec_rx_buffer            *cba_crb;
-    struct cec_tx_buffer            *cba_ctb;
-} p8_callback_arg_t;
-
-typedef void (*p8_callback_t)(p8_code_t code,
-                              const p8_param_t *params, p8_len_t param_len,
-                              p8_callback_arg_t cb_arg);
+typedef proto_frame_t p8s_frame_t; /* Encoded serial frame */
 
 extern int
-p8_frame_error(enum p8_frame_error, const p8_frame_t *frbuf, p8_len_t len);
+p8_frame_error(enum p8_frame_error error, const p8s_frame_t *frame);
 
-extern int
-p8_encode(p8_frame_t *frbuf, p8_code_t code, const p8_param_t *params, p8_len_t param_len);
+extern void p8_encode_cmd(p8s_frame_t *oframe, p8_code_t code, proto_char_t *params, proto_len_t len);
+extern void p8_encode_tx(p8s_frame_t *oframe, p8_code_t code, proto_frame_t *params);
+extern int  p8_decode(p8s_frame_t *iframe, p8_frame_t  *oframe);
 
-extern int
-p8_decode(const p8_frame_t *frbuf, p8_len_t len,
-          p8_callback_t callback, p8_callback_arg_t cb_arg);

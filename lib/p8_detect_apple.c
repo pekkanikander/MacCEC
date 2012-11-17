@@ -29,6 +29,7 @@
 #include <IOKit/serial/IOSerialKeys.h>
 #include <CoreFoundation/CoreFoundation.h>
 
+#include "proto.h"
 #include "p8.h"
 
 /*
@@ -39,9 +40,9 @@
  * if they are USB nodes and have the right vendor and product id.
  */
 
-#define CEC_VID  0x2548
-#define CEC_PID  0x1001
-#define CEC_PID2 0x1002
+#define P8_CEC_VID  0x2548
+#define P8_CEC_PID  0x1001
+#define P8_CEC_PID2 0x1002
 
 /*
  * Returns the Unix-level path to the serial port.
@@ -116,7 +117,7 @@ match_usb_vid_and_pid(io_object_t serial) {
 
     IOObjectRelease(usb);
 
-    return (vid == CEC_VID && (pid == CEC_PID || pid == CEC_PID2));
+    return (vid == P8_CEC_VID && (pid == P8_CEC_PID || pid == P8_CEC_PID2));
 }
 
 /*

@@ -6,6 +6,8 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include "proto.h"
+
 #include "p8.h"
 #include "p8_codes.h"
 
@@ -51,4 +53,4 @@ const p8_code_type_t p8_code_types[] = {
     { P8_CT_H2A_ACKED, 1,  1,  0,  0 }, /* Controlled mode */
 };
 
-const unsigned int p8_code_type_count = COUNT_OF(p8_code_types);
+const unsigned int P8_CODE_TYPE_COUNT = COUNT_OF(p8_code_types);

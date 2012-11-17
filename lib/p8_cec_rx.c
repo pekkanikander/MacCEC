@@ -4,6 +4,8 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include "proto.h"
+
 #include "cec.h"
 #include "cec_rx.h"
 
@@ -24,14 +26,26 @@
     ((((f) & P8_RX_FRAME_ACK)? CEC_ACK: 0) | (((f) & P8_RX_FRAME_EOM)? CEC_EOM: 0))
 #endif
 
-void
-p8_cec_rx_error_cb(p8_code_t code,
-                   const p8_param_t *params, p8_len_t param_len,
-                   p8_callback_arg_t cba) {
-    cec_flags_t flags = P8_CODE_FLAGS_TO_CEC_FLAGS(code);
-    cec_rx_buffer_t * const crb = cba.cba_crb;
+static const char *CEC_FLAGS_TO_STRING[] = {
+    "",
+    "ack",
+    "eom",
+    "ack eom",
+    "start",
+    "ack start",
+    "eom start",
+    "ack eom start",
+};
 
-    cec_rx_error(CEC_RX_ERROR, params[0], flags, crb);
+int
+p8_cec_rx_error_cb(proto_char_t code,
+                   const p8_frame_t *frame,
+                   proto_callback_arg_t cba) {
+    cec_flags_t flags = P8_CODE_FLAGS_TO_CEC_FLAGS(code);
+    cec_rx_frame_t * const iframe = cba.cba_frame;
+
+    DEBUG("CEC RX: error callback 0x%02.2x %s\n", code, CEC_FLAGS_TO_STRING[flags]);
+    return cec_rx_error(CEC_RX_ERROR, frame->f_sta[0], flags, iframe);
 }
 
 /* Called by P8 code on:
@@ -40,71 +54,71 @@ p8_cec_rx_error_cb(p8_code_t code,
     P8_IND_RX_FAILED
 */
 
-void
-p8_cec_rx_callback(const p8_code_t code,
-                   const p8_param_t *params, p8_len_t param_len,
-                   p8_callback_arg_t cba) {
+int
+p8_cec_rx_callback(proto_char_t code,
+                   const p8_frame_t *frame,
+                   proto_callback_arg_t cba) {
 
     cec_flags_t flags = P8_CODE_FLAGS_TO_CEC_FLAGS(code);
-    cec_rx_buffer_t * const crb = cba.cba_crb;
+    cec_rx_frame_t * const iframe = cba.cba_frame;
 
     const int swcode = (code & P8_CODE_MASK);
     switch (swcode) {
     case P8_IND_RX_START:
         flags |= CEC_START;
-        /* Fallthrough */
     case P8_IND_RX_NEXT:
-        crb->crb_status = cec_rx_char_cb(params[0], flags, crb);
-        break;
-    case P8_IND_RX_FAILED:
-        crb->crb_status = CEC_RX_ERROR;
+        DEBUG("CEC RX: char 0x%02.2x %s\n", frame->f_sta[0], CEC_FLAGS_TO_STRING[flags]);
+        cec_rx_char_cb(frame->f_sta[0], flags, iframe);
         break;
     default:
-        DEBUG("Unrecognized RX code 0x%02.2x, swcode = 0x%02.2x\n", code, swcode);
+        DEBUG("CEC RX: error code 0x%02.2x %s, swcode = 0x%02.2x\n",
+              code, CEC_FLAGS_TO_STRING[flags], swcode);
         assert(0);
     }
-
-    if (crb->crb_status != CEC_RX_OK) {
-        cec_rx_error(crb->crb_status, params[0], flags, crb);
-    }
+    return 0;
 }
 
-const static p8_callback_t p8_cec_rx_callbacks[] = {
+const static proto_callback_t p8_cec_rx_callbacks[] = {
     p8_cec_rx_error_cb,
     p8_cec_rx_callback,
 };
 
-const static struct p8_dispatch_table p8_cec_rx_dt;
-
-const static struct p8_dispatch_table p8_cec_rx_dt = {
+const static struct proto_dispatch_table p8_cec_rx_dt = {
     .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 0, 0, 0, 0, 0, 0),
     .dt_number    = COUNT_OF(p8_cec_rx_callbacks),
     .dt_callbacks = p8_cec_rx_callbacks,
 };
 
 /**
- * Receives the next CEC message to the given cec_rx_buffer.  Blocks.
+ * Receives the next CEC message to the given cec_rx_frame.  Blocks.
  */
-extern cec_rx_status_t
-p8_cec_rx(int fd, cec_rx_buffer_t *crb, p8_io_buffer_t *pib) {
-    assert(crb->crb_char_count == 0);
-    assert(crb->crb_status == CEC_RX_OK);
+extern int
+p8_cec_rx(int fd, cec_rx_frame_t *iframe, p8_io_buffer_t *pib) {
+    assert_frame_invariant(iframe);
+    assert_frame_is_empty(iframe);
+    assert(iframe->f_status == CEC_RX_EMPTY);
 
     /* Read until CEC EOM */
     do {
-        p8_frame_t frbuf[P8_FRAME_BUFFER_LENGTH];
-        int len = 0;
+        /* NB.  In the stack. */
+        p8_frame_t p8frame = {
+            .f_sta = p8frame.f_buf,
+            .f_end = p8frame.f_buf,
+        };
+        int rv;
 
-        p8_callback_arg_t cba_table[COUNT_OF(p8_cec_rx_callbacks)] = {
-            { .cba_crb = crb }, /* For p8_cec_rx_error_cb */
-            { .cba_crb = crb }, /* For p8_cec_rx_callback */
+        proto_callback_arg_t cba_table[COUNT_OF(p8_cec_rx_callbacks)] = {
+            { .cba_frame = iframe }, /* For p8_cec_rx_error_cb */
+            { .cba_frame = iframe }, /* For p8_cec_rx_callback */
         };
 
-        /* Read at least one P8 frame.  */
-        len = p8_read(fd, frbuf, sizeof(frbuf), pib, &p8_cec_rx_dt, cba_table);
-        if (len <= 0) {
-            return crb->crb_status;
-        }
-    } while (crb->crb_char_count == 0 || !(crb->crb_flags[crb->crb_char_count - 1] & CEC_EOM));
-    return CEC_RX_OK;
+        DEBUG("CEC RX: Processing input\n");
+        rv = p8_read_and_dispatch(fd, &p8frame, pib, &p8_cec_rx_dt, cba_table);
+        if (rv) return rv;
+
+    } while (iframe->f_end == iframe->f_sta || iframe->f_status != CEC_RX_EOM);
+
+    assert_frame_invariant(iframe);
+
+    return 0;
 }

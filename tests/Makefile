@@ -6,20 +6,19 @@ TESTS = \
 	p8_getfw \
 	p8_disp \
 	cec_vendor_id1 \
-	cec_vendor_id2 \
 	cec_vendor_id3 \
 #
 
-CFLAGS = -I../libccec
-LDFLAGS = -L../libccec -framework CoreFoundation -framework IOKit
+CFLAGS = -I../lib -Wall -g
+LDFLAGS = -L../lib -framework CoreFoundation -framework IOKit
 LDLIBS = -lccec
 
 all:	$(TESTS)
 
 clean:
 	rm -f $(TESTS)
+	rm -rf *.dSYM
 
 tests:
 	for t in $(TESTS); do ./$$t; done
 
-# $(TESTS):: ../libccec/libccec.a ../libccec/p8.h
