@@ -50,13 +50,14 @@ static const proto_callback_t callbacks[] = {
 static proto_callback_arg_t args[COUNT_OF(callbacks)] = {
     { -1 }, { 0 },
     { P8_IND_ACK }, { P8_IND_NACK },
-    { P8_IND_TX_SUCCEEDED }, { P8_QRY_BUILDDATE },
+    { P8_IND_TX_SUCCEEDED },
+    { P8_QRY_FIRMWARE },
 };
 
 static const proto_dispatch_table_t dt = {
     .dt_number    = COUNT_OF(callbacks),
     /* err, err, rx, ack, nack, tx, err, err, build */
-    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 2, 3, 4, 0, 0, 5),
+    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 2, 3, 4, 0, 5),
     .dt_callbacks = callbacks,
 };
 
@@ -76,21 +77,21 @@ main(void) {
         .f_end = sframe.f_buf,
     };
 
-    p8_encode_cmd(&sframe, P8_CMD_PING,            NULL, 0); /* -> ACK */
+    p8_encode_cmd(&sframe, P8_CMD_PING,        NULL, 0); /* -> ACK */
     c = 1;
-    p8_encode_cmd(&sframe, P8_SET_CONTROLLED,      &c,   1); /* -> ACK */
-    p8_encode_cmd(&sframe, P8_QRY_BUILDDATE,       NULL, 0); /* -> BUILD */
+    p8_encode_cmd(&sframe, P8_SET_CONTROLLED,  &c,   1); /* -> ACK */
+    p8_encode_cmd(&sframe, P8_QRY_FIRMWARE,    NULL, 0); /* -> FIRMWARE */
     c = 3;
-    p8_encode_cmd(&sframe, P8_CMD_TX_SET_IDLETIME, &c,   1); /* -> ACK */
+    p8_encode_cmd(&sframe, P8_CMD_TX_SET_IDLE, &c,   1); /* -> ACK */
     /* CEC POLL src:dst = Unknown:TV */
     c = 0xf0;
-    p8_encode_cmd(&sframe, P8_CMD_TX_EOM,          &c,   1); /* -> ACK */
+    p8_encode_cmd(&sframe, P8_CMD_TX_EOM,      &c,   1); /* -> ACK */
     /* -> TX_SUCCEEDED */
     /* CEC Give Device VENDOR ID: src:dst = Unknown:TV */
     c = 0xf0;
-    p8_encode_cmd(&sframe, P8_CMD_TX,              &c,   1); /* -> ACK */
+    p8_encode_cmd(&sframe, P8_CMD_TX,          &c,   1); /* -> ACK */
     c = 0x8c;
-    p8_encode_cmd(&sframe, P8_CMD_TX_EOM,          &c,   1); /* -> ACK */
+    p8_encode_cmd(&sframe, P8_CMD_TX_EOM,      &c,   1); /* -> ACK */
     /* -> TX_SUCCEEDED */
 
     len = sframe.f_end - sframe.f_sta;

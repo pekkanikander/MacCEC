@@ -5,8 +5,9 @@ TESTS = \
 	p8_ping2 \
 	p8_getfw \
 	p8_disp \
-	cec_vendor_id1 \
-	cec_vendor_id3 \
+	p8_cec_vendor_id1 \
+	p8_cec_vendor_id3 \
+	cec_poll \
 #
 
 CFLAGS = -I../lib -Wall -g

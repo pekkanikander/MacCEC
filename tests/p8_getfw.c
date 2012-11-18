@@ -25,9 +25,9 @@ int callback(proto_char_t code,
     const proto_char_t *params = frame->f_sta;
     proto_len_t param_len = frame->f_end - frame->f_sta;
     assert(code < P8_CODE_TYPE_COUNT);
-    assert(code == P8_QRY_FIRMWARE_VERS);
-    assert(param_len == p8_code_types[P8_QRY_FIRMWARE_VERS].ct_a2h_min_plen);
-    assert(param_len == p8_code_types[P8_QRY_FIRMWARE_VERS].ct_a2h_max_plen);
+    assert(code == P8_QRY_FIRMWARE);
+    assert(param_len == p8_code_types[P8_QRY_FIRMWARE].ct_a2h_min_plen);
+    assert(param_len == p8_code_types[P8_QRY_FIRMWARE].ct_a2h_max_plen);
     replied = 1;
     memcpy(fw_vers, params, param_len);
     return 0;
@@ -60,7 +60,7 @@ int main(void) {
         exit(1);
     }
 
-    p8_encode_cmd(&sframe, P8_QRY_FIRMWARE_VERS, NULL, 0);
+    p8_encode_cmd(&sframe, P8_QRY_FIRMWARE, NULL, 0);
     len = write(fd, sframe.f_buf, sframe.f_end - sframe.f_sta);
     if (len != sframe.f_end - sframe.f_sta) {
         perror("write");

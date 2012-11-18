@@ -12,6 +12,7 @@
  */
 
 enum p8_code {
+    P8_CMD_NONE            = 0x00,
     P8_CMD_PING            = 0x01,
 
     P8_IND_ERROR_TIMEOUT   = 0x02, /* TBD.  Bit error? */
@@ -30,20 +31,18 @@ enum p8_code {
     P8_CMD_TX              = 0x0B, /* Transmit a CEC byte */
     P8_CMD_TX_EOM          = 0x0C, /* Transmit a CEC byte, and EOM */
 
-    P8_CMD_TX_SET_IDLETIME = 0x0D, /* TBD.  Set CEC TX Signal Free Time?= */
-    P8_CMD_TX_SET_ACK_POL  = 0x0E, /* TBD.  Set CEC TX ACK polarity (for multicast/unicast) */
+    P8_CMD_TX_SET_IDLE     = 0x0D, /* TBD.  Set CEC TX Signal Free Time?= */
+    P8_CMD_TX_SET_ACK_P    = 0x0E, /* TBD.  Set CEC TX ACK polarity (for multicast/unicast) */
     P8_CMD_TX_SET_TIMEOUT  = 0x0F, /* TBD.  Set CEC TX reply timeout?? */
 
     P8_IND_TX_SUCCEEDED    = 0x10, /* Transmit succeeded */
     P8_IND_TX_FAIL_LINE    = 0x11, /* Transmit failed.  TBD.  Bit error? */
     P8_IND_TX_FAIL_ACK     = 0x12, /* Transmit NACKed */
-    P8_IND_TX_TIMEOUT_DATA = 0x13, /* TBD */
-    P8_IND_TX_TIMEOUT_LINE = 0x14, /* TBD */
+    P8_IND_TX_TIMEOUT_D    = 0x13, /* TBD */
+    P8_IND_TX_TIMEOUT_L    = 0x14, /* TBD */
 
-    P8_QRY_FIRMWARE_VERS   = 0x15, /* Query/reply firmware version */
-    P8_CMD_BOOT            = 0x16, /* Start bootloader */
-    P8_QRY_BUILDDATE       = 0x17, /* Query/reply boot date */
-    P8_SET_CONTROLLED      = 0x18, /* TBD. */
+    P8_QRY_FIRMWARE        = 0x15, /* Query/reply firmware version */
+    P8_SET_CONTROLLED      = 0x18, /* Host-side control mode. */
 };
 
 #define P8_CODE_NUMBER   64

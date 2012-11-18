@@ -22,9 +22,12 @@
 #include "cec_tx.h"
 
 #include <stdio.h>
+#include <assert.h>
 
 void
 cec_tx_error(cec_tx_status_t status, cec_tx_frame_t *frame) {
-    fprintf(stderr, "CEC TX ERROR: status=%d\n", status);
+    assert_frame_invariant(frame);
+    fprintf(stderr, "CEC TX ERROR: status=%d, frame->status=%d\n", status, frame->f_status);
+    frame->f_status = status;
 }
 

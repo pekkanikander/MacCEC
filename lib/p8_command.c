@@ -49,7 +49,7 @@ const proto_callback_t p8_command_callbacks[P8_DISPATCH_DEFAULT_INDEX_TABLE_LENG
     P8_DISPATCH_DEFAULT_VECTOR,
     p8_command_ack, p8_command_nack,
     p8_error, p8_error,
-    p8_error, p8_error,
+    p8_error, 
 };
 
 const static struct proto_dispatch_table p8_command_dt = {
@@ -89,7 +89,6 @@ p8_command(int fd, p8_code_t code,
         { .cba_int = 0 },           /* TX */
         { .cba_int = 0 },           /* TX error/timeout */
         { .cba_int = 0 },           /* FW reply -> protocol error */
-        { .cba_int = 0 },           /* BUILDDATE reply -> protocol error */
     };
 
     if (p8_write(fd, &oframe, &p8_command_dt, cba_table) < 0) {

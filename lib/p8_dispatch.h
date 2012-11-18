@@ -10,7 +10,7 @@
  * Dispatch tables used for the P8 protocol.
  */
 
-#define P8_DISPATCH_INDEX_TABLE(proto_err, rx_err, rx, ack, nack, tx, tx_err, fw_reply, build_reply) \
+#define P8_DISPATCH_INDEX_TABLE(proto_err, rx_err, rx, ack, nack, tx, tx_err, fw_reply) \
     { \
         proto_err, /* NONE */                   \
         proto_err, /* CMD_PING */               \
@@ -37,7 +37,7 @@
         tx_err,    /* IND_TX_TIMEOUT_LINE */    \
         fw_reply,  /* QRY_FIRMWARE_VERS */      \
         proto_err, /* CMD_BOOT */               \
-        build_reply, /* QRY_BUILDATE */         \
+        proto_err, /* TBD */                    \
                                                 \
         proto_err, /* CMD_SET_CONTROLLED */     \
         proto_err, /* TBD */                    \
@@ -304,10 +304,10 @@
         proto_err, /* TBD */                    \
 }
 
-#define P8_DISPATCH_DEFAULT_INDEX_TABLE_LENGTH 9
+#define P8_DISPATCH_DEFAULT_INDEX_TABLE_LENGTH 8
 
 #define P8_DISPATCH_DEFAULT_INDEX_TABLE \
-    P8_DISPATCH_INDEX_TABLE(0, 1, 2, 3, 4, 5, 6, 7, 8)
+    P8_DISPATCH_INDEX_TABLE(0, 1, 2, 3, 4, 5, 6, 7)
 
 #define P8_DISPATCH_DEFAULT_VECTOR \
     p8_error, p8_cec_rx_error_cb, p8_cec_rx_callback

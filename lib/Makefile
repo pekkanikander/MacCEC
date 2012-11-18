@@ -20,6 +20,8 @@ CEC_OBJ = \
 	cec_rx_char_cb.o \
 	cec_rx_error.o \
 	cec_tx_error.o \
+	cec_open.o \
+	cec_command.o \
 #
 PLATFORM_OBJ = \
 	p8_detect_apple.o \

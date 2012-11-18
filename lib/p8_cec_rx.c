@@ -40,6 +40,8 @@ int
 p8_cec_rx_error_cb(proto_char_t code,
                    const p8_frame_t *frame,
                    proto_callback_arg_t cba) {
+    assert_frame_invariant(frame);
+
     cec_flags_t flags = P8_CODE_FLAGS_TO_CEC_FLAGS(code);
     cec_rx_frame_t * const iframe = cba.cba_frame;
 
@@ -57,6 +59,7 @@ int
 p8_cec_rx_callback(proto_char_t code,
                    const p8_frame_t *frame,
                    proto_callback_arg_t cba) {
+    assert_frame_invariant(frame);
 
     cec_flags_t flags = P8_CODE_FLAGS_TO_CEC_FLAGS(code);
     cec_rx_frame_t * const iframe = cba.cba_frame;
@@ -74,6 +77,9 @@ p8_cec_rx_callback(proto_char_t code,
               code, CEC_FLAGS_TO_STRING[flags], swcode);
         assert(0);
     }
+
+    assert_frame_invariant(frame);
+
     return 0;
 }
 
@@ -83,7 +89,7 @@ const static proto_callback_t p8_cec_rx_callbacks[] = {
 };
 
 const static struct proto_dispatch_table p8_cec_rx_dt = {
-    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 0, 0, 0, 0, 0, 0),
+    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 0, 0, 0, 0, 0),
     .dt_number    = COUNT_OF(p8_cec_rx_callbacks),
     .dt_callbacks = p8_cec_rx_callbacks,
 };
@@ -115,7 +121,7 @@ p8_cec_rx(int fd, cec_rx_frame_t *iframe) {
         rv = p8_read_and_dispatch(fd, &p8frame, &p8_cec_rx_dt, cba_table);
         if (rv) return rv;
 
-    } while (iframe->f_end == iframe->f_sta || iframe->f_status != CEC_RX_EOM);
+    } while (iframe->f_end == iframe->f_sta || iframe->f_status == CEC_RX_PROGRESS);
 
     assert_frame_invariant(iframe);
 

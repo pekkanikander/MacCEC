@@ -31,15 +31,18 @@ p8_cec_tx_error_cb(proto_char_t code,
     assert_frame_invariant(frame);
     assert_code_rx_invariant(code, frame);
 
+    DEBUG("CEC_TX: ERROR: p8_tx_error: code=0x%02.2x\n", code);
+
     switch (code) {
-    case P8_IND_TX_FAIL_LINE:
     case P8_IND_TX_FAIL_ACK:
-        oframe->f_status = CEC_TX_ERROR;
+        /* Not acked.  Part of the protocol. */
+        oframe->f_status = CEC_TX_NO_ACK;
+        break;
+    case P8_IND_TX_FAIL_LINE:
         cec_tx_error(CEC_TX_ERROR, oframe);
         break;
-    case P8_IND_TX_TIMEOUT_DATA:
-    case P8_IND_TX_TIMEOUT_LINE:
-        oframe->f_status = CEC_TX_TIMEOUT;
+    case P8_IND_TX_TIMEOUT_D:
+    case P8_IND_TX_TIMEOUT_L:
         cec_tx_error(CEC_TX_TIMEOUT, oframe);
         break;
     default:
@@ -96,7 +99,7 @@ const proto_callback_t p8_cec_tx_callbacks[P8_DISPATCH_DEFAULT_INDEX_TABLE_LENGT
     P8_DISPATCH_DEFAULT_VECTOR,
     p8_cec_tx_ack, p8_cec_tx_nack,
     p8_cec_tx_callback, p8_cec_tx_error_cb,
-    p8_error, p8_error,
+    p8_error,
 };
 
 const static struct proto_dispatch_table p8_cec_tx_dt = {
@@ -112,7 +115,7 @@ const static struct proto_dispatch_table p8_cec_tx_dt = {
  */
 
 int
-p8_cec_tx(int fd, unsigned char idletime,
+p8_cec_tx(int fd, cec_signal_free_time_t idletime,
           cec_tx_frame_t *cec_oframe, cec_rx_frame_t *cec_iframe) {
     int ack_count = 0, nack_count = 0;
 
@@ -133,12 +136,13 @@ p8_cec_tx(int fd, unsigned char idletime,
         { .cba_frame = cec_oframe }, /* TX */
         { .cba_frame = cec_oframe }, /* TX error/timeout */
         { .cba_int = 0 },            /* FW reply -> protocol error */
-        { .cba_int = 0 },            /* BUILDDATE reply -> protocol error */
     };
 
     /* Construct a p8 frame and write it out */
     {
-        p8_encode_cmd(&p8frame, P8_CMD_TX_SET_IDLETIME, &idletime, 1);
+        proto_char_t idle = idletime;
+
+        p8_encode_cmd(&p8frame, P8_CMD_TX_SET_IDLE, &idle, 1);
         ack_count++;
         while (cec_oframe->f_sta < cec_oframe->f_end - 1) {
             p8_encode_tx(&p8frame, P8_CMD_TX, cec_oframe);
@@ -171,11 +175,7 @@ p8_cec_tx(int fd, unsigned char idletime,
     }
 
     if (ack_count != 0 || nack_count != 0) {
-        cec_oframe->f_status = CEC_TX_ERROR;
-    }
-
-    if (cec_oframe->f_status != CEC_TX_SUCCEEDED) {
-        cec_tx_error(cec_oframe->f_status, cec_oframe);
+        cec_tx_error(CEC_TX_ERROR, cec_oframe);
     }
 
     assert_frame_invariant(cec_oframe);

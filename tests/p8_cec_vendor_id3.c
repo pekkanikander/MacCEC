@@ -52,13 +52,13 @@ callback(proto_char_t code,
 static const proto_callback_t callbacks[] = {
     callback, rx_callback,
     callback, callback,
-    callback, callback,
+    callback
 };
 
 static const proto_dispatch_table_t dt = {
     .dt_number    = COUNT_OF(callbacks),
     /* err, err, rx, ack, nack, tx, err, err, build */
-    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 2, 3, 4, 0, 0, 5),
+    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 2, 3, 4, 0, 0),
     .dt_callbacks = callbacks,
 };
 
@@ -84,7 +84,7 @@ int main(void) {
     rv = p8_command_set_controlled(fd, &crb);
     assert(rv == 0);
 
-    /* CEC POLL src:dst = Unknown:TV */
+    /* CEC XXX src:dst = Unknown:TV */
     cec_tx_frame_t ctb = {
         .f_buf = { 0xf0, 0x8c },
         .f_sta = ctb.f_buf,
