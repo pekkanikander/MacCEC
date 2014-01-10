@@ -7,12 +7,13 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <assert.h>
+
 #include "proto.h"
 
 #include "cec.h"
+#include "cec_device.h"
 #include "cec_rx.h"
-
-#include <assert.h>
 
 void
 cec_rx_char_cb(cec_char_t c, cec_flags_t f, cec_rx_frame_t *frame) {

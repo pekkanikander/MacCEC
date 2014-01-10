@@ -1,8 +1,42 @@
-2012-11-17
+2012-12-15
 
-- refactor pib out
-  - remove the "include" order dependency in p8_cec_tx.c, 
-  - remove extra includes from cec_tx_error.c
-- test after refactoring
-- commit
- 
+- cec_rx_dispatch_table_t
+
+- cec_logical_device
+  - initialise
+    - allocate logical address
+- replies to polling
+
+- cec_command
+  - complete for cec_one_touch_play
+
+- cec_one_touch_play
+
+
+- test:
+  - initialize logical device
+  - activate one_touch_play
+    - should work if the TV is active
+
+- cec_physical_address extraction; see my Wiki
+
+- move non-P8 parts to Apache license
+
+- cec_rx_unknown() -> cec_feature_abort()
+
+- replies to request_active_source
+
+- put TV to standby
+
+- device menu control
+
+- change name to "C-CEC" or something similar
+
+- command line interface
+
+- raspberry interface
+
+- cross-testing with two devices
+
+- cross-testing against libcec
+

@@ -4,9 +4,9 @@
  * This file has been explicitly placed in public domain.
  */
 
-#include "proto.h"
-
 #include <assert.h>
+
+#include "proto.h"
 
 /**
  * Call a dispatch function based on code.
@@ -30,7 +30,7 @@ proto_dispatch(const proto_char_t code,
     /* NB. Protect against errors in the header */
     assert(sizeof(*frame) == PROTO_FRAME_SIZE);
 
-    proto_dispatch_index_t index = dt->dt_indices[code];
+    proto_dispatch_index_t index = dt->dt_indices[code & dt->dt_code_mask];
     if (index >= dt->dt_number) {
         dt->dt_error(code, frame, cba_table[index]);
     }

@@ -6,14 +6,14 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <assert.h>
+
 #include "proto.h"
 
 #include "p8.h"
 #include "p8_codes.h"
 #include "p8_frame.h"
 #include "p8_dispatch.h"
-
-#include <assert.h>
 
 int
 p8_dispatch(p8s_frame_t *iframe,
@@ -22,18 +22,15 @@ p8_dispatch(p8s_frame_t *iframe,
 
     assert_frame_invariant(iframe);
 
-    /* NB.  oframe in the stack.  Fix later if needed for the kernel. */
-    p8_frame_t oframe = {
-        .f_sta = oframe.f_buf,
-        .f_end = oframe.f_buf,
-    };
+    /* NB.  oframe is allocated in the stack. */
+    PROTO_FRAME(p8_frame_t, oframe, 0, 0);
 
-    const int rv = p8_decode(iframe, &oframe);
+    const int rv = p8_decode(iframe, oframe);
     if (rv < 0) return rv;
 
     const proto_char_t code = rv;
 
     assert_frame_invariant(iframe);
 
-    return proto_dispatch(code, &oframe, dt, cba_table);
+    return proto_dispatch(code, oframe, dt, cba_table);
 }

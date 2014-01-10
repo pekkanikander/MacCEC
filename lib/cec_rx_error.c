@@ -7,12 +7,14 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <stdio.h>
+#include <assert.h>
+
 #include "proto.h"
 
 #include "cec.h"
+#include "cec_device.h"
 #include "cec_rx.h"
-
-#include <stdio.h>
 
 int
 cec_rx_error(cec_rx_frame_state_t state, cec_char_t c, cec_flags_t f, cec_rx_frame_t *frame) {

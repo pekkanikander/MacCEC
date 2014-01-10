@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <assert.h>
 
 #include <sys/errno.h>
 #include <sys/param.h>          /* For MAXPATHLEN */
@@ -18,8 +19,6 @@
 #include "p8_codes.h"
 #include "p8_frame.h"
 #include "p8_io.h"
-
-#include <assert.h>
 
 /**
  * Opens a communication channel with the P8 CEC-USB adapter.
@@ -64,7 +63,7 @@ p8_read(int fd, p8s_frame_t *f) {
 
     /* If the frame is empty, reset it */
     assert_frame_invariant(f);
-    if (f->f_sta == f->f_end) {
+    if (proto_frame_is_empty(f)) {
         f->f_sta = f->f_end = f->f_buf;
     } /* NB. 'else' not needed here.  Smart compiler
          will add one. */

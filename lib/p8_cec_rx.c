@@ -4,9 +4,12 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <assert.h>
+
 #include "proto.h"
 
 #include "cec.h"
+#include "cec_device.h"
 #include "cec_rx.h"
 
 #include "p8.h"
@@ -15,8 +18,6 @@
 #include "p8_dispatch.h"
 #include "p8_io.h"
 #include "p8_cec_rx.h"
-
-#include <assert.h>
 
 #if P8_RX_FRAME_ACK == (CEC_ACK << 6) && P8_RX_FRAME_EOM == (CEC_EOM << 6)
 #define P8_CODE_FLAGS_TO_CEC_FLAGS(f) ((f) >> 6)
@@ -89,9 +90,10 @@ const static proto_callback_t p8_cec_rx_callbacks[] = {
 };
 
 const static struct proto_dispatch_table p8_cec_rx_dt = {
-    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 0, 0, 0, 0, 0),
     .dt_number    = COUNT_OF(p8_cec_rx_callbacks),
+    .dt_code_mask = P8_DISPATCH_CODE_MASK,
     .dt_callbacks = p8_cec_rx_callbacks,
+    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 1, 0, 0, 0, 0, 0),
 };
 
 /**
@@ -105,11 +107,8 @@ p8_cec_rx(int fd, cec_rx_frame_t *iframe) {
 
     /* Read until CEC EOM */
     do {
-        /* NB.  In the stack. */
-        p8_frame_t p8frame = {
-            .f_sta = p8frame.f_buf,
-            .f_end = p8frame.f_buf,
-        };
+        /* NB.  The frame is allocated in the stack. */
+        PROTO_FRAME(p8_frame_t, p8frame, 0, 0);
         int rv;
 
         proto_callback_arg_t cba_table[COUNT_OF(p8_cec_rx_callbacks)] = {
@@ -118,10 +117,10 @@ p8_cec_rx(int fd, cec_rx_frame_t *iframe) {
         };
 
         DEBUG("CEC RX: Processing input\n");
-        rv = p8_read_and_dispatch(fd, &p8frame, &p8_cec_rx_dt, cba_table);
+        rv = p8_read_and_dispatch(fd, p8frame, &p8_cec_rx_dt, cba_table);
         if (rv) return rv;
 
-    } while (iframe->f_end == iframe->f_sta || iframe->f_status == CEC_RX_PROGRESS);
+    } while (proto_frame_is_empty(iframe) || iframe->f_status == CEC_RX_PROGRESS);
 
     assert_frame_invariant(iframe);
 

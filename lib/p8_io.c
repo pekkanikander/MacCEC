@@ -6,6 +6,9 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <unistd.h>
+#include <assert.h>
+
 #include "proto.h"
 
 #include "p8.h"
@@ -13,9 +16,6 @@
 #include "p8_frame.h"
 #include "p8_dispatch.h"
 #include "p8_io.h"
-
-#include <unistd.h>
-#include <assert.h>
 
 int
 p8_read_and_dispatch(int fd, p8s_frame_t *iframe,
@@ -29,7 +29,7 @@ p8_read_and_dispatch(int fd, p8s_frame_t *iframe,
     rv = p8_read(fd, iframe);
     if (rv) return rv;
 
-    while (iframe->f_end > iframe->f_sta) {
+    while (!proto_frame_is_empty(iframe)) {
         rv = p8_dispatch(iframe, dt, cba_table);
         if (rv) return rv;
     }
@@ -45,19 +45,15 @@ p8_write(int fd, p8s_frame_t *oframe,
 
     assert_frame_invariant(oframe);
 
-    /* NB.  iframe in the stack.  Fix later for kernel if needed. */
-    p8s_frame_t iframe = {
-        .f_sta = iframe.f_buf,
-        .f_end = iframe.f_buf,
-    };
-
-    int slen = oframe->f_end - oframe->f_sta;
+    int slen = proto_frame_len(oframe);
     if (slen != write(fd, oframe->f_sta, slen)) {
         return -1;
     }
 
+    /* NB.  iframe in the stack.  Fix later for kernel if needed. */
+    PROTO_FRAME(p8s_frame_t, iframe, 0, 0);
     int rv;
-    rv = p8_read_and_dispatch(fd, &iframe, dt, cba_table);
+    rv = p8_read_and_dispatch(fd, iframe, dt, cba_table);
     if (rv) return rv;
 
     assert_frame_invariant(oframe);

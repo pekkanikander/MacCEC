@@ -6,13 +6,13 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <assert.h>
+
 #include "proto.h"
 
 #include "p8.h"
 #include "p8_codes.h"
 #include "p8_frame.h"
-
-#include <assert.h>
 
 static proto_char_t *
 encode_char(proto_char_t *p, proto_char_t c) {

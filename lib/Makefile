@@ -21,24 +21,30 @@ CEC_OBJ = \
 	cec_rx_error.o \
 	cec_tx_error.o \
 	cec_open.o \
+	cec_codes.o \
+	cec_poll.o \
+	cec_logical_address.o \
+	cec_dispatch.o \
 	cec_command.o \
+	cec_device_initialize.o \
 #
 PLATFORM_OBJ = \
 	p8_detect_apple.o \
 	p8_io_unix.o \
 	p8_io.o \
+	cec_physical_address_apple.o \
 #
 
 CFLAGS += -Wall -g
 
 OBJ = $(PROTO_OBJ) $(P8_OBJ) $(PLATFORM_OBJ) $(CEC_OBJ)
 
-all:	libccec.a
+all:	libmaccec.a
 
 clean:
-	rm -f libccec.a
+	rm -f libmaccec.a
 	rm -f $(OBJ)
 
-libccec.a:	$(OBJ)
+libmaccec.a:	$(OBJ)
 	ar -cr $@ $(OBJ)
 	ranlib $@

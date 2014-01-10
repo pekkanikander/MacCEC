@@ -6,6 +6,8 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <assert.h>
+
 #include "proto.h"
 
 #include "p8.h"

@@ -24,23 +24,49 @@ typedef enum cec_signal_free_time {
     CEC_SIGNAL_FREE_RETRY = 3,
 } cec_signal_free_time_t;
 
+typedef enum cec_device_type {
+    CEC_DEVICE_TV = 0,
+    CEC_DEVICE_RECORDING = 1,
+    CEC_DEVICE_TUNER = 3,
+    CEC_DEVICE_PLAYBACK = 4,
+    CEC_DEVICE_AUDIO = 5,
+} cec_device_type_t;
+
 typedef unsigned char cec_count_t;
+
+#define CEC_LOGICAL_ADDRESS_MASK   0x0f
+#define CEC_LOGICAL_ADDRESS_NUMBER 16
+
+typedef unsigned char cec_logical_address_t;
+
+typedef unsigned short cec_physical_address_t;
+
 /* Forward declarations */
 enum cec_code;
+enum cec_tx_status;
 
-#define CEC_MAKE_ADDRESS(src, dst) ((((src) & 0xf) << 4) | ((dst) & 0xf))
+#define CEC_MAKE_ADDRESS(src, dst) \
+    ((((src) & CEC_LOGICAL_ADDRESS_MASK) << 4) | ((dst) & CEC_LOGICAL_ADDRESS_MASK))
+#define CEC_ADDR_DST(addr) ((addr) & CEC_LOGICAL_ADDRESS_MASK)
+
+typedef enum cec_tx_status {
+    CEC_TX_ERROR     = -2,    /* Failure reported by the lower layer */
+    CEC_TX_UNKNOWN   = -1,
+    CEC_TX_SUCCEEDED = 0,
+    CEC_TX_NO_ACK    = 1,     /* Not acked  */
+    CEC_TX_TIMEOUT   = 2,     /* Timout reported by the lower layer */
+} cec_tx_status_t;
+
+typedef unsigned char cec_address_byte_t;
 
 extern int
 cec_open(void);
 
-extern int
-cec_command(int fd, 
-            cec_header_t addr,
-            enum cec_code code, 
-            proto_char_t *params, proto_len_t len, 
-            struct proto_frame *iframe);
+extern cec_physical_address_t
+cec_get_physical_address(int fd);
 
-extern int
-cec_command_poll(int fd, 
-                 cec_header_t addr,
-                 struct proto_frame *iframe);
+extern enum cec_tx_status
+cec_poll(int fd,
+         cec_header_t addr,
+         struct proto_frame *iframe);
+

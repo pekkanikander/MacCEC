@@ -8,11 +8,12 @@ TESTS = \
 	p8_cec_vendor_id1 \
 	p8_cec_vendor_id3 \
 	cec_poll \
+	cec_logical_initialise
 #
 
 CFLAGS = -I../lib -Wall -g
 LDFLAGS = -L../lib -framework CoreFoundation -framework IOKit
-LDLIBS = -lccec
+LDLIBS = -lmaccec
 
 all:	$(TESTS)
 
@@ -21,5 +22,5 @@ clean:
 	rm -rf *.dSYM
 
 tests:
-	for t in $(TESTS); do ./$$t; done
+	for t in $(TESTS); do echo ==== $$t ====; ./$$t; done
 

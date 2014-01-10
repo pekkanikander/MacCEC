@@ -1,5 +1,5 @@
 /**
- * Test CEC ping & vendor ID.
+ * Test CEC logical device initialise.
  *
  * Placed in public domain.
  */
@@ -15,25 +15,25 @@
 
 #include <cec.h>
 #include <cec_rx.h>
+#include <cec_logical_device.h>
 
 #define DEBUG(...) printf(__VA_ARGS__)
 
 int
 main(int ac, char **av) {
+    cec_logical_device_t device;
+    cec_device_type_t type = CEC_DEVICE_PLAYBACK;
     int src = 0xf, dst = 0x0;
     int fd;
 
     switch (ac) {
-    case 3:
-        dst = atoi(av[2]);
-        /* Fallthrough */
     case 2:
-        src = atoi(av[1]);
+        type = atoi(av[1]);
         /* Fallthrough */
     case 1:
         break;
     default:
-        fprintf(stderr, "Usage: %s [src] [dst]\n", av[0]);
+        fprintf(stderr, "Usage: %s [type]\n", av[0]);
         exit (1);
     }
 
@@ -42,9 +42,12 @@ main(int ac, char **av) {
         exit(1);
     }
 
-    cec_rx_frame_t iframe = {
-        .f_sta = iframe.f_buf,
-        .f_end = iframe.f_buf,
-    };
-    return cec_poll(fd, CEC_MAKE_ADDRESS(src, dst), &iframe);
+    cec_physical_address_t physical = cec_get_physical_address(fd);
+
+    return cec_logical_device_initialize(
+        &device,
+        0 /* XXX */,
+        fd,
+        physical,
+        type);
 }

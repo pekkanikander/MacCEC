@@ -7,14 +7,15 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <assert.h>
+
 #include "proto.h"
 
 #include "cec.h"
+#include "cec_device.h"
 #include "cec_rx.h"
 #include "cec_tx.h"
 #include "cec_codes.h"
-
-#include <assert.h>
 
 /**
  * Sends the CEC command.  Waits for a reply, if defined by the state
@@ -24,37 +25,13 @@
  */
 
 int
-cec_command(int fd,
-            cec_header_t addr,
+cec_command(cec_device_t *d,
             enum cec_code code,
-            proto_char_t *prams, proto_len_t len,
-            cec_rx_frame_t *iframe) {
-
-    assert_frame_invariant(iframe);
-
+            proto_char_t *prams, proto_len_t len) {
+#if 0 /* XXX */
+    const cec_tx_flags_t tx_flags = cec_codes_types[cec_code_indices[code]].ct_tx_flags;
+    p8_cec_tx(d->d_fd, XXX, tx_flags, &tx_frame, d->d_rx_frame);
+#endif
     return 0;
 }
 
-/**
- * @returns 0 if succeeded.
- * < 0 if sending failed.
- * > 0 if there was a timeout.
- */
-int
-cec_command_poll(int fd,
-                 cec_header_t addr,
-                 cec_rx_frame_t *iframe) {
-
-    assert_frame_invariant(iframe);
-
-    cec_tx_frame_t oframe = {
-        .f_buf = { addr },
-        .f_sta = oframe.f_buf,
-        .f_end = oframe.f_buf + 1,
-    };
-
-    int rv = p8_cec_tx(fd, CEC_SIGNAL_FREE_LARGE, &oframe, iframe);
-    if (rv) return rv;
-
-    return oframe.f_status;
-}

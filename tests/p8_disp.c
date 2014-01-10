@@ -43,8 +43,9 @@ static proto_callback_arg_t args[COUNT_OF(callbacks)] = {
 
 static const proto_dispatch_table_t dt = {
     .dt_number    = COUNT_OF(callbacks),
-    /* err, err, rx, ack, nack, tx, err, err, build */
-    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 2, 3, 4, 0, 5),
+    .dt_code_mask = P8_DISPATCH_CODE_MASK,
+    /* err, rx, ack, nack, tx, err, err, build */
+    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 1, 2, 3, 4, 0, 5),
     .dt_callbacks = callbacks,
 };
 

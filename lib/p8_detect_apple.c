@@ -1,6 +1,6 @@
 /*
  * This file is partially derived from code that carried the following copyright
- * licensing information:
+ * and licensing information:
  *
  * Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  *

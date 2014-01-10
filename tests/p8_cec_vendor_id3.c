@@ -1,9 +1,7 @@
 /**
- * Pulse Eight serial protocol.
- *
  * Test p8_cec_rx & p8_cec_tx.
  *
- * Copyright (c) 2012 Pekka Nikander.  Placed in public domain.
+ * Placed in public domain.
  */
 
 #include <stdio.h>
@@ -57,8 +55,9 @@ static const proto_callback_t callbacks[] = {
 
 static const proto_dispatch_table_t dt = {
     .dt_number    = COUNT_OF(callbacks),
-    /* err, err, rx, ack, nack, tx, err, err, build */
-    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 0, 1, 2, 3, 4, 0, 0),
+    .dt_code_mask = P8_DISPATCH_CODE_MASK,
+    /* err, rx, ack, nack, tx, err, err, build */
+    .dt_indices   = P8_DISPATCH_INDEX_TABLE(0, 1, 2, 3, 4, 0, 0),
     .dt_callbacks = callbacks,
 };
 
@@ -91,7 +90,7 @@ int main(void) {
         .f_end = ctb.f_buf + 2,
         .f_status = CEC_TX_UNKNOWN,
     };
-    p8_cec_tx(fd, 3, &ctb, &crb);
+    p8_cec_tx(fd, 3, CEC_TX_NONE, &ctb, &crb);
 
     DEBUG("crb.sta %ld crb.end %ld crb.status %d\n",
           crb.f_sta - crb.f_buf, crb.f_end - crb.f_buf, crb.f_status);

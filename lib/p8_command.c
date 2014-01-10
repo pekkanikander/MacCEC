@@ -6,9 +6,12 @@
  * This file has been explicitly placed in public domain.
  */
 
+#include <assert.h>
+
 #include "proto.h"
 
 #include "cec.h"
+#include "cec_device.h"
 #include "cec_rx.h"
 
 #include "p8.h"
@@ -18,8 +21,6 @@
 #include "p8_error.h"
 #include "p8_io.h"
 #include "p8_cec_rx.h"
-
-#include <assert.h>
 
 enum status { P8_ERROR=-1, P8_ACK=0, P8_NACK=1, };
 
@@ -49,13 +50,14 @@ const proto_callback_t p8_command_callbacks[P8_DISPATCH_DEFAULT_INDEX_TABLE_LENG
     P8_DISPATCH_DEFAULT_VECTOR,
     p8_command_ack, p8_command_nack,
     p8_error, p8_error,
-    p8_error, 
+    p8_error,
 };
 
 const static struct proto_dispatch_table p8_command_dt = {
-    .dt_indices   = P8_DISPATCH_DEFAULT_INDEX_TABLE,
     .dt_number    = COUNT_OF(p8_command_callbacks),
+    .dt_code_mask = P8_DISPATCH_CODE_MASK,
     .dt_callbacks = p8_command_callbacks,
+    .dt_indices   = P8_DISPATCH_DEFAULT_INDEX_TABLE,
 };
 
 /**
@@ -70,13 +72,9 @@ p8_command(int fd, p8_code_t code,
            cec_rx_frame_t *iframe) {
     assert_frame_invariant(iframe);
 
-    p8s_frame_t oframe = {
-        .f_sta = oframe.f_buf,
-        .f_end = oframe.f_buf,
-        .f_status = 0,
-    };
+    PROTO_FRAME(p8s_frame_t, oframe, 0, 0);
 
-    p8_encode_cmd(&oframe, code, params, len);
+    p8_encode_cmd(oframe, code, params, len);
 
     int status = P8_ERROR;
 
@@ -91,7 +89,7 @@ p8_command(int fd, p8_code_t code,
         { .cba_int = 0 },           /* FW reply -> protocol error */
     };
 
-    if (p8_write(fd, &oframe, &p8_command_dt, cba_table) < 0) {
+    if (p8_write(fd, oframe, &p8_command_dt, cba_table) < 0) {
         status = P8_ERROR;
     }
 
@@ -101,7 +99,7 @@ p8_command(int fd, p8_code_t code,
 }
 
 int
-p8_command1(int fd, enum p8_code code, proto_char_t param, 
+p8_command1(int fd, enum p8_code code, proto_char_t param,
             proto_frame_t *iframe) {
     proto_char_t c = param;
     return p8_command(fd, code, &c, 1, iframe);

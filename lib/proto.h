@@ -67,6 +67,40 @@ typedef struct proto_frame {
 #define assert_frame_not_empty(frame) assert((frame)->f_sta <  (frame)->f_end)
 #define assert_frame_is_empty(frame)  assert((frame)->f_sta == (frame)->f_end)
 
+static inline unsigned char
+proto_frame_getc(proto_frame_t *f) {
+    assert_frame_invariant(f);
+    assert_frame_not_empty(f);
+
+    return *(f->f_sta++);
+}
+
+static inline int
+proto_frame_is_empty(const proto_frame_t *f) {
+    assert_frame_invariant(f);
+    return f->f_sta == f->f_end;
+}
+
+static inline void
+proto_frame_init(proto_frame_t *f, int status) {
+    f->f_end = f->f_sta = f->f_buf;
+    f->f_status = status;
+    assert_frame_invariant(f);
+}
+
+static inline long
+proto_frame_len(const proto_frame_t *f) {
+    assert_frame_invariant(f);
+    return f->f_end - f->f_sta;
+}
+
+#define PROTO_FRAME(type, name, len, status)     \
+    type _ ## name = {                           \
+        .f_sta = _ ## name.f_buf,                \
+        .f_end = _ ## name.f_buf + (len),        \
+        .f_status = (status),                    \
+    }, *name = &_ ## name
+
 /**
  * A type used for representing protocol message lengths.
  *
@@ -84,6 +118,7 @@ typedef union {
     int                              cba_int;
     int                             *cba_intp;
     proto_frame_t                   *cba_frame;
+    struct cec_callback_arg         *cba_cec_cba; /* Forward declaration of the type */
 } proto_callback_arg_t;
 
 /**
@@ -99,15 +134,22 @@ typedef int (*proto_callback_t)(proto_char_t code, const proto_frame_t *frame,
  * CMD -> dt_indices -> dt_callbacks -> callback
  */
 
+#ifdef __GNUC__
+/* GCC does support static initialization of flexible array members */
+#define PROTO_INDEX_SIZE
+#else
+#warning "Spending memory on too big index tables"
 #define PROTO_INDEX_SIZE 256
+#endif
 
 typedef unsigned char proto_dispatch_index_t;
 
 typedef struct proto_dispatch_table {
     unsigned char                dt_number;      /* Number of callbacks in table */
-    const proto_dispatch_index_t dt_indices[PROTO_INDEX_SIZE]; /* Map codes to indices */
+    unsigned char                dt_code_mask;   /* Code mask before looking up dt_indices */
     const proto_callback_t       dt_error;       /* Index out of bounds */
     const proto_callback_t *     dt_callbacks;   /* The callbacks themselves */
+    const proto_dispatch_index_t dt_indices[PROTO_INDEX_SIZE]; /* Map codes to indices */
 } proto_dispatch_table_t;
 
 extern int
